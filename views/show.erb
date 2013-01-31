@@ -1,0 +1,101 @@
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+
+<style type="text/css">
+  body {
+    width: 700px;
+    margin: auto;
+    padding-top: 20px;
+    font-family: Georgia;
+  }
+  form {
+    border: 1px solid black;
+    margin-top: 10px;
+    padding: 10px;
+    box-shadow: 10px 10px 5px #888888;
+  }
+  form img.image {
+    width: 150px;
+    height: 150px;
+    float: right;
+    position: relative;
+    top: -150px;
+  }
+  #drop {
+    box-shadow: 10px 10px 5px #888888;
+    margin-bottom: 17px;
+  }
+  #product {
+    width: 300px;
+  }
+</style>
+
+<h1 id="header" style="color:#00ff00">OMG UPDATE THE PRODUCT</h1>
+
+<div id="drop" style="width:350px;height:350px;border:2px solid black;" ondrop="drop(event)">
+  <p>Drop you product here:</p>
+</div>
+
+<div id="product_info">
+  <form action="/download" method="post" accept-charset="utf-8">
+    <h2>Download CSV</h2>
+    <input type="hidden" name="id" value="" id="id1">
+    <p>
+      <label for="product:">Product Image URL:</label>
+      <input type="text" name="product" value="" id="product">
+    </p>
+    <p><input type="submit" value="Download CSV &rarr;"></p>
+    <img src="download.jpeg" alt="" class="image">
+  </form>
+
+  <form action="/upload_from_csv" method="post" enctype="multipart/form-data">
+    <h2>Upload CSV</h2>
+    <input type="file" name="datafile" size="40">
+    <p><input type="submit" value="Update &rarr;"></p>
+    <img src="upload.jpeg" alt="" class="image">
+  </form>
+
+  <form action="/update" method="post" accept-charset="utf-8">
+    <h2>Edit</h2>
+    <input type="hidden" name="id" value="" id="id">
+    <input type="hidden" name="partner_id" value="" id="partner_id">
+    <p>Title</p>
+    <input type="text" name="title" value="" id="title">
+    <p>Intoduce the product</p>
+    <textarea id="body" name="body" value="" rows="20" cols="50"></textarea>
+    <p>Price</p>
+    <input type="text" name="gross_price" value="" id="price">
+    <p><input type="submit" value="Update &rarr;"></p>
+    <img src="edit.jpeg" alt="" class="image">
+  </form>
+</div>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#product_info").hide();
+    $(document).bind('drop dragover', function (e) {
+        e.preventDefault();
+    });
+
+    $(document).bind('drop', function (e) {
+      var uri = $(e.originalEvent.dataTransfer.getData('text/html')).filter("img").attr("src")
+      console.log(uri);
+      $("#drop").html("<img src='" + uri + "' >")
+      $("#product").attr("value", uri)
+      $.ajax({
+        type: "POST",
+        url: "/product",
+        data: { uri: uri}
+      }).done(function( response ) {
+        product = JSON.parse(response)
+        $("#body").val(product[0].body);
+        $("#title").val(product[0].title);
+        $("#header").html("OMG UPDATE " + product[0].title.toUpperCase());
+        $("#price").val(product[0].gross_price);
+        $("#id").val(product[0].id);
+        $("#id1").val(product[0].id);
+        $("#partner_id").val(product[0].partner_id);
+        $("#product_info").show();
+      });
+    });
+  });
+</script>
